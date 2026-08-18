@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AgentHub — Panel de administración para la orquestación y gestión de agentes de inteligencia artificial autónomos.">
+  <title>AgentHub — Panel de Administración</title>
+
+  <!-- Tailwind CSS vía CDN (único mecanismo de estilos permitido) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Estrategia de modo oscuro basada en clase sobre <html>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+
+  <!-- FASE 2: <script type="module" src="app.js" defer></script> -->
+</head>
+
+<body>
+
+  <!-- ============================================================
+       SKIP LINKS — atajos de salto (WCAG 2.4.1 / 2.4.11)
+       Visibles únicamente al recibir foco de teclado.
+       ============================================================ -->
+  <nav aria-label="Atajos de salto">
+    <ul>
+      <li><a class="sr-only focus:not-sr-only" href="#contenido-principal">Saltar al contenido principal</a></li>
+      <li><a class="sr-only focus:not-sr-only" href="#navegacion-principal">Saltar a la navegación</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       REGIÓN DE ANUNCIOS PARA LECTORES DE PANTALLA
+       Punto único de notificaciones dinámicas (cambio de sección,
+       "marcar como resuelto", guardado de prompt, etc.).
+       ============================================================ -->
+  <p id="anuncios-a11y" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
+  <!-- ============================================================
+       BARRA LATERAL — Navegación persistente
+       ============================================================ -->
+  <aside aria-label="Barra lateral de navegación">
+
+    <!-- Marca -->
+    <p id="marca-aplicacion">
+      <a href="#dashboard">
+        <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><circle cx="9" cy="14" r="1"></circle><circle cx="15" cy="14" r="1"></circle>
+        </svg>
+        <span>AgentHub</span>
+      </a>
+    </p>
+
+    <nav id="navegacion-principal" aria-label="Navegación principal">
+      <ul>
+        <li>
+          <a href="#dashboard" data-ruta="dashboard" aria-current="page">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#usuarios" data-ruta="usuarios">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            </svg>
+            <span>Gestión de Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#agentes" data-ruta="agentes">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M2 14h2"></path><path d="M20 14h2"></path>
+            </svg>
+            <span>Gestión de Agentes</span>
+          </a>
+        </li>
+        <li>
+          <a href="#skills" data-ruta="skills">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l2.4 5.6L20 10l-4 4 1 6-5-3-5 3 1-6-4-4 5.6-1.4z"></path>
+            </svg>
+            <span>Skills</span>
+          </a>
+        </li>
+        <li>
+          <a href="#contrataciones" data-ruta="contrataciones">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path>
+            </svg>
+            <span>Contrataciones</span>
+          </a>
+        </li>
+        <li>
+          <a href="#errores" data-ruta="errores">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>
+            </svg>
+            <span>Log de Errores</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ============================================================
+       CABECERA SUPERIOR
+       ============================================================ -->
+  <header>
+
+    <!-- Título de página: se actualiza dinámicamente al navegar entre secciones -->
+    <h1 id="titulo-pagina">Dashboard General</h1>
+
+    <!-- Migas de pan -->
+    <nav aria-label="Miga de pan">
+      <ol id="migas-de-pan">
+        <li><a href="#dashboard">AgentHub</a></li>
+        <li aria-current="page">Dashboard General</li>
+      </ol>
+    </nav>
+
+    <!-- Indicador de salud de la plataforma -->
+    <p id="salud-plataforma" role="status">
+      <span aria-hidden="true">●</span>
+      <span>Estado de la plataforma: <strong>Operativa</strong></span>
+    </p>
+
+    <!-- Toggle de modo oscuro -->
+    <button id="toggle-tema" type="button" aria-pressed="false">
+      <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+      </svg>
+      <span id="etiqueta-tema">Activar modo oscuro</span>
+    </button>
+  </header>
+
+  <!-- ============================================================
+       CONTENIDO PRINCIPAL — Vistas de la SPA
+       Solo una <section> visible a la vez (atributo `hidden`).
+       ============================================================ -->
+  <main id="contenido-principal" tabindex="-1">
+
+    <!-- ────────────────────────────────────────────────────────
+         5.1 DASHBOARD
+         ──────────────────────────────────────────────────────── -->
+    <section id="dashboard" role="region" aria-label="Dashboard general de la plataforma" data-vista="dashboard">
+
+      <!-- Tarjetas de métricas -->
+      <section aria-labelledby="titulo-metricas">
+        <h2 id="titulo-metricas">Métricas clave</h2>
+
+        <ul>
+          <li>
+            <section aria-labelledby="metrica-ingresos-titulo">
+              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+              <h3 id="metrica-ingresos-titulo">Ingresos Totales</h3>
+              <p><strong>$48,250.00</strong></p>
+            </section>
+          </li>
+          <li>
+            <section aria-labelledby="metrica-descuentos-titulo">
+              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 5 5 19"></path><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle>
+              </svg>
+              <h3 id="metrica-descuentos-titulo">Pérdida por Descuentos</h3>
+              <p><strong>$3,120.00</strong></p>
+            </section>
+          </li>
+          <li>
+            <section aria-labelledby="metrica-activos-titulo">
+              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path>
+              </svg>
+              <h3 id="metrica-activos-titulo">Agentes Activos</h3>
+              <p><strong>124</strong></p>
+            </section>
+          </li>
+          <li>
+            <section aria-labelledby="metrica-fallando-titulo">
+              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
+              </svg>
+              <h3 id="metrica-fallando-titulo">Agentes Fallando</h3>
+              <p><strong>3</strong></p>
+            </section>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Marcador del gráfico de actividad semanal -->
+      <section aria-labelledby="titulo-actividad">
+        <h2 id="titulo-actividad">Actividad semanal de agentes</h2>
+
+        <figure>
+          <!-- Marcador visual del gráfico: se rellenará en la fase de estilos -->
+          <div id="grafico-actividad" role="img" aria-labelledby="titulo-actividad" aria-describedby="descripcion-grafico" data-marcador="grafico"></div>
+          <figcaption id="descripcion-grafico">
+            Gráfico de barras de ejecuciones diarias durante la última semana:
+            lunes 1.240, martes 1.480, miércoles 1.310, jueves 1.620, viernes 1.755,
+            sábado 890 y domingo 640 ejecuciones. Tendencia general al alza en días laborables.
+          </figcaption>
+        </figure>
+      </section>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────
+         5.2 GESTIÓN DE USUARIOS
+         ──────────────────────────────────────────────────────── -->
+    <section id="usuarios" role="region" aria-label="Gestión de usuarios" data-vista="usuarios" hidden>
+
+      <section aria-labelledby="titulo-tabla-usuarios">
+        <h2 id="titulo-tabla-usuarios">Usuarios registrados</h2>
+        <p id="ayuda-tabla-usuarios">
+          Utilice el menú de acciones de cada fila para consultar el registro completo o eliminar la cuenta.
+        </p>
+
+        <table aria-describedby="ayuda-tabla-usuarios">
+          <caption>Listado de cuentas de cliente con su plan contratado y estado actual</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Email</th>
+              <th scope="col">Plan</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-usuario) -->
+          <tbody id="tbody-usuarios"></tbody>
+        </table>
+      </section>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────
+         5.3 GESTIÓN DE AGENTES
+         ──────────────────────────────────────────────────────── -->
+    <section id="agentes" role="region" aria-label="Gestión de agentes" data-vista="agentes" hidden>
+
+      <section aria-labelledby="titulo-lista-agentes">
+        <h2 id="titulo-lista-agentes">Agentes desplegados</h2>
+        <p id="ayuda-lista-agentes">
+          Despliegue «Ver skills» para consultar las habilidades asociadas a cada agente
+          o abra el menú de acciones para configurar su system prompt.
+        </p>
+
+        <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-tarjeta-agente) -->
+        <ul id="lista-agentes" aria-describedby="ayuda-lista-agentes"></ul>
+      </section>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────
+         5.4 SKILLS
+         ──────────────────────────────────────────────────────── -->
+    <section id="skills" role="region" aria-label="Catálogo de skills" data-vista="skills" hidden>
+
+      <!-- Panel informativo explicativo -->
+      <section aria-labelledby="titulo-info-skills">
+        <h2 id="titulo-info-skills">¿Qué es una skill en AgentHub?</h2>
+        <p>
+          Una <dfn>skill</dfn> es una capacidad modular y facturable que se acopla a un agente
+          para habilitar una tarea concreta —consultar una base de datos, redactar informes,
+          analizar imágenes o integrarse con un servicio externo—. Cada agente puede combinar
+          varias skills, y su precio se imputa de forma individual en el contrato de alquiler.
+        </p>
+      </section>
+
+      <!-- Catálogo de tarjetas -->
+      <section aria-labelledby="titulo-catalogo-skills">
+        <h2 id="titulo-catalogo-skills">Catálogo de skills disponibles</h2>
+
+        <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-tarjeta-skill) -->
+        <ul id="catalogo-skills"></ul>
+      </section>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────
+         5.5 CONTRATACIONES DE AGENTES
+         ──────────────────────────────────────────────────────── -->
+    <section id="contrataciones" role="region" aria-label="Contrataciones de agentes" data-vista="contrataciones" hidden>
+
+      <section aria-labelledby="titulo-tabla-contratos">
+        <h2 id="titulo-tabla-contratos">Contratos de alquiler</h2>
+        <p id="ayuda-tabla-contratos">
+          Seleccione «Ver detalle» en el menú de acciones para consultar el desglose económico del contrato.
+        </p>
+
+        <table aria-describedby="ayuda-tabla-contratos">
+          <caption>Contratos de alquiler de agentes con su periodo de vigencia e importe total</caption>
+          <thead>
+            <tr>
+              <th scope="col">Cliente</th>
+              <th scope="col">Agente alquilado</th>
+              <th scope="col">Skills contratadas</th>
+              <th scope="col">Fecha de inicio</th>
+              <th scope="col">Fecha de fin</th>
+              <th scope="col">Importe total</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-contrato) -->
+          <tbody id="tbody-contratos"></tbody>
+        </table>
+      </section>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────
+         5.6 LOG DE ERRORES
+         ──────────────────────────────────────────────────────── -->
+    <section id="errores" role="region" aria-label="Log de errores de ejecución" data-vista="errores" hidden>
+
+      <section aria-labelledby="titulo-tabla-errores">
+        <h2 id="titulo-tabla-errores">Registro de errores de ejecución</h2>
+        <p id="ayuda-tabla-errores">
+          Consulte la traza completa de cada incidencia o márquela como resuelta desde el menú de acciones.
+        </p>
+
+        <table aria-describedby="ayuda-tabla-errores">
+          <caption>Incidencias registradas durante la ejecución de los agentes</caption>
+          <thead>
+            <tr>
+              <th scope="col">Timestamp</th>
+              <th scope="col">Agente</th>
+              <th scope="col">Gravedad</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-error) -->
+          <tbody id="tbody-errores"></tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       PIE DE PÁGINA
+       ============================================================ -->
+  <footer>
+    <p>AgentHub — Panel de Administración. Prototipo académico sin backend; todos los datos son ficticios.</p>
+  </footer>
+
+
+  <!-- ============================================================
+       MODALES REUTILIZABLES — <dialog> nativo
+       `showModal()` aporta de forma nativa: backdrop, aria-modal,
+       trampa de foco, cierre con Escape y restauración del foco.
+       Los botones dentro de <form method="dialog"> cierran sin JS.
+       ============================================================ -->
+
+  <!-- 5.2 · Registro completo de usuario -->
+  <dialog id="modal-usuario" aria-labelledby="modal-usuario-titulo" aria-describedby="modal-usuario-cuerpo">
+    <article>
+      <header>
+        <h2 id="modal-usuario-titulo">Registro completo del usuario</h2>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de registro de usuario">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </form>
+      </header>
+
+      <div id="modal-usuario-cuerpo">
+        <dl>
+          <dt>ID de usuario</dt>
+          <dd data-campo="id"></dd>
+          <dt>Nombre completo</dt>
+          <dd data-campo="nombre"></dd>
+          <dt>Email</dt>
+          <dd data-campo="email"></dd>
+          <dt>Plan contratado</dt>
+          <dd data-campo="plan"></dd>
+          <dt>Estado</dt>
+          <dd data-campo="estado"></dd>
+          <dt>Fecha de alta</dt>
+          <dd data-campo="alta"></dd>
+          <dt>Nivel de uso</dt>
+          <dd data-campo="uso"></dd>
+          <dt>Dirección de facturación</dt>
+          <dd data-campo="facturacion"></dd>
+        </dl>
+      </div>
+
+      <footer>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal>Cerrar</button>
+        </form>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- 5.3 · Configuración del system prompt -->
+  <dialog id="modal-prompt" aria-labelledby="modal-prompt-titulo" aria-describedby="modal-prompt-descripcion">
+    <article>
+      <header>
+        <h2 id="modal-prompt-titulo">Configurar system prompt</h2>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de configuración del system prompt">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </form>
+      </header>
+
+      <div>
+        <p id="modal-prompt-descripcion">
+          Edite las instrucciones base que condicionan el comportamiento del agente
+          <strong data-campo="agente"></strong>. Los cambios se aplican en el siguiente ciclo de ejecución.
+        </p>
+
+        <form id="form-prompt" novalidate>
+          <p>
+            <label for="campo-system-prompt">System prompt del agente</label>
+            <textarea id="campo-system-prompt" name="systemPrompt" rows="10"
+                      aria-describedby="ayuda-system-prompt" required></textarea>
+            <span id="ayuda-system-prompt">Mínimo 20 caracteres. Evite incluir credenciales o datos personales.</span>
+          </p>
+        </form>
+      </div>
+
+      <footer>
+        <button type="submit" form="form-prompt">Guardar cambios</button>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal>Cancelar</button>
+        </form>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- 5.4 · Detalle de skill -->
+  <dialog id="modal-skill" aria-labelledby="modal-skill-titulo" aria-describedby="modal-skill-cuerpo">
+    <article>
+      <header>
+        <h2 id="modal-skill-titulo">Detalle de la skill</h2>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de detalle de skill">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </form>
+      </header>
+
+      <div id="modal-skill-cuerpo">
+        <dl>
+          <dt>Nombre</dt>
+          <dd data-campo="nombre"></dd>
+          <dt>Descripción</dt>
+          <dd data-campo="descripcion"></dd>
+          <dt>Agentes activos que la utilizan</dt>
+          <dd data-campo="agentes"></dd>
+          <dt>Precio mensual por agente</dt>
+          <dd data-campo="precio"></dd>
+        </dl>
+      </div>
+
+      <footer>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal>Cerrar</button>
+        </form>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- 5.5 · Desglose del contrato -->
+  <dialog id="modal-contrato" aria-labelledby="modal-contrato-titulo" aria-describedby="modal-contrato-cuerpo">
+    <article>
+      <header>
+        <h2 id="modal-contrato-titulo">Desglose del contrato</h2>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de desglose del contrato">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </form>
+      </header>
+
+      <div id="modal-contrato-cuerpo">
+        <dl>
+          <dt>Cliente</dt>
+          <dd data-campo="cliente"></dd>
+          <dt>Agente alquilado</dt>
+          <dd data-campo="agente"></dd>
+          <dt>Periodo de vigencia</dt>
+          <dd data-campo="periodo"></dd>
+          <dt>Método de pago</dt>
+          <dd data-campo="pago"></dd>
+        </dl>
+
+        <table>
+          <caption>Skills contratadas y su precio individual</caption>
+          <thead>
+            <tr>
+              <th scope="col">Skill</th>
+              <th scope="col">Precio unitario</th>
+            </tr>
+          </thead>
+          <tbody data-campo="lineas"></tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Subtotal</th>
+              <td data-campo="subtotal"></td>
+            </tr>
+            <tr>
+              <th scope="row">Impuestos (21% IVA)</th>
+              <td data-campo="impuestos"></td>
+            </tr>
+            <tr>
+              <th scope="row">Total pagado</th>
+              <td data-campo="total"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <footer>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal>Cerrar</button>
+        </form>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- 5.6 · Traza completa del error -->
+  <dialog id="modal-error" aria-labelledby="modal-error-titulo" aria-describedby="modal-error-cuerpo">
+    <article>
+      <header>
+        <h2 id="modal-error-titulo">Traza completa del error</h2>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de traza del error">
+            <span aria-hidden="true">✕</span>
+          </button>
+        </form>
+      </header>
+
+      <div id="modal-error-cuerpo">
+        <dl>
+          <dt>Timestamp</dt>
+          <dd data-campo="timestamp"></dd>
+          <dt>Agente</dt>
+          <dd data-campo="agente"></dd>
+          <dt>Gravedad</dt>
+          <dd data-campo="gravedad"></dd>
+          <dt>Contexto de ejecución</dt>
+          <dd data-campo="contexto"></dd>
+        </dl>
+
+        <!-- Región desplazable: debe ser alcanzable por teclado (WCAG 2.1.1) -->
+        <div role="region" aria-labelledby="titulo-stack-trace" tabindex="0">
+          <h3 id="titulo-stack-trace">Stack trace</h3>
+          <pre><code data-campo="stack"></code></pre>
+        </div>
+      </div>
+
+      <footer>
+        <form method="dialog">
+          <button type="submit" data-cerrar-modal>Cerrar</button>
+        </form>
+      </footer>
+    </article>
+  </dialog>
+
+
+  <!-- ============================================================
+       PLANTILLAS REUTILIZABLES
+       Marcado inerte que la capa JS clonará para poblar las vistas.
+       Los `id` finales y los textos se asignan al clonar.
+       ============================================================ -->
+
+  <!-- Fila de la tabla de usuarios -->
+  <template id="tpl-fila-usuario">
+    <tr>
+      <th scope="row" data-campo="nombre"></th>
+      <td data-campo="email"></td>
+      <td data-campo="plan"></td>
+      <td><span data-componente="badge" data-campo="estado"></span></td>
+      <td>
+        <div data-componente="dropdown">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⋮</span>
+            <span class="sr-only" data-campo="etiqueta-acciones">Acciones del usuario</span>
+          </button>
+          <ul role="menu" data-menu hidden>
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-usuario">Ver detalle</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-usuario">Eliminar</button></li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <!-- Tarjeta de agente con lista de skills colapsable -->
+  <template id="tpl-tarjeta-agente">
+    <li>
+      <section data-componente="tarjeta-agente">
+        <h3 data-campo="nombre"></h3>
+        <p>Propietario: <span data-campo="propietario"></span></p>
+        <p><span data-componente="badge" data-campo="estado"></span></p>
+
+        <!-- Colapsable de skills -->
+        <button type="button" data-disparador="colapsable" aria-expanded="false">
+          <span>Ver skills</span>
+          <span aria-hidden="true">▾</span>
+        </button>
+        <!-- El id se genera al clonar y se enlaza con aria-controls del botón -->
+        <ul data-panel="skills" hidden></ul>
+
+        <!-- Menú de acciones -->
+        <div data-componente="dropdown">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⋮</span>
+            <span class="sr-only" data-campo="etiqueta-acciones">Acciones del agente</span>
+          </button>
+          <ul role="menu" data-menu hidden>
+            <li role="none"><button type="button" role="menuitem" data-accion="configurar-agente">Configurar</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-agente">Eliminar</button></li>
+          </ul>
+        </div>
+      </section>
+    </li>
+  </template>
+
+  <!-- Tarjeta del catálogo de skills -->
+  <template id="tpl-tarjeta-skill">
+    <li>
+      <article data-componente="tarjeta-skill">
+        <h3 data-campo="nombre"></h3>
+        <p data-campo="descripcion"></p>
+        <p><strong data-campo="agentes"></strong> agentes activos</p>
+
+        <div data-componente="dropdown">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⋮</span>
+            <span class="sr-only" data-campo="etiqueta-acciones">Acciones de la skill</span>
+          </button>
+          <ul role="menu" data-menu hidden>
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-skill">Ver detalle</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-skill">Eliminar</button></li>
+          </ul>
+        </div>
+      </article>
+    </li>
+  </template>
+
+  <!-- Fila de la tabla de contratos -->
+  <template id="tpl-fila-contrato">
+    <tr>
+      <th scope="row" data-campo="cliente"></th>
+      <td data-campo="agente"></td>
+      <td data-campo="skills"></td>
+      <td><time data-campo="inicio"></time></td>
+      <td><time data-campo="fin"></time></td>
+      <td data-campo="importe"></td>
+      <td>
+        <div data-componente="dropdown">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⋮</span>
+            <span class="sr-only" data-campo="etiqueta-acciones">Acciones del contrato</span>
+          </button>
+          <ul role="menu" data-menu hidden>
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-contrato">Ver detalle</button></li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <!-- Fila de la tabla del log de errores -->
+  <template id="tpl-fila-error">
+    <tr>
+      <th scope="row"><time data-campo="timestamp"></time></th>
+      <td data-campo="agente"></td>
+      <td><span data-componente="badge" data-campo="gravedad"></span></td>
+      <td data-campo="descripcion"></td>
+      <td>
+        <div data-componente="dropdown">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span aria-hidden="true">⋮</span>
+            <span class="sr-only" data-campo="etiqueta-acciones">Acciones del error</span>
+          </button>
+          <ul role="menu" data-menu hidden>
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-error">Ver traza completa</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="resolver-error">Marcar como resuelto</button></li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+</body>
+</html>
