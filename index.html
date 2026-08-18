@@ -9,14 +9,35 @@
   <!-- Tailwind CSS vía CDN (único mecanismo de estilos permitido) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Estrategia de modo oscuro basada en clase sobre <html>
-    tailwind.config = { darkMode: 'class' };
+    // Estrategia de modo oscuro basada en clase sobre <html>.
+    // Se comprueba la existencia de `tailwind` para que un fallo de red en
+    // el CDN degrade el aspecto pero no rompa la aplicación.
+    if (window.tailwind) window.tailwind.config = { darkMode: 'class' };
   </script>
 
-  <!-- FASE 2: <script type="module" src="app.js" defer></script> -->
+  <!-- Aplica el tema guardado ANTES del primer pintado para evitar el
+       parpadeo de color (FOUC). Debe ser un script bloqueante en el <head>. -->
+  <script>
+    (function () {
+      try {
+        var guardado = localStorage.getItem('agenthub:tema');
+        var oscuro = guardado
+          ? guardado === 'oscuro'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', oscuro);
+      } catch (error) {
+        /* almacenamiento no disponible: se mantiene el tema claro */
+      }
+    })();
+  </script>
+
+  <!-- Lógica de la aplicación (módulos ES nativos) -->
+  <script type="module" src="js/app.js"></script>
 </head>
 
-<body>
+<!-- Paleta mínima provisional: solo para poder verificar el toggle de tema.
+     El sistema de color definitivo llega en la fase de estilos. -->
+<body class="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50">
 
   <!-- ============================================================
        SKIP LINKS — atajos de salto (WCAG 2.4.1 / 2.4.11)
@@ -158,7 +179,7 @@
                 <path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
               <h3 id="metrica-ingresos-titulo">Ingresos Totales</h3>
-              <p><strong>$48,250.00</strong></p>
+              <p><strong data-metrica="ingresos">$48,250.00</strong></p>
             </section>
           </li>
           <li>
@@ -167,7 +188,7 @@
                 <path d="M19 5 5 19"></path><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle>
               </svg>
               <h3 id="metrica-descuentos-titulo">Pérdida por Descuentos</h3>
-              <p><strong>$3,120.00</strong></p>
+              <p><strong data-metrica="descuentos">$3,120.00</strong></p>
             </section>
           </li>
           <li>
@@ -176,7 +197,7 @@
                 <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path>
               </svg>
               <h3 id="metrica-activos-titulo">Agentes Activos</h3>
-              <p><strong>124</strong></p>
+              <p><strong data-metrica="activos">124</strong></p>
             </section>
           </li>
           <li>
@@ -185,7 +206,7 @@
                 <circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
               </svg>
               <h3 id="metrica-fallando-titulo">Agentes Fallando</h3>
-              <p><strong>3</strong></p>
+              <p><strong data-metrica="fallando">3</strong></p>
             </section>
           </li>
         </ul>
@@ -413,9 +434,13 @@
         <form id="form-prompt" novalidate>
           <p>
             <label for="campo-system-prompt">System prompt del agente</label>
-            <textarea id="campo-system-prompt" name="systemPrompt" rows="10"
-                      aria-describedby="ayuda-system-prompt" required></textarea>
+            <textarea id="campo-system-prompt" name="systemPrompt" rows="10" required
+                      data-foco-inicial
+                      aria-describedby="ayuda-system-prompt error-system-prompt"></textarea>
             <span id="ayuda-system-prompt">Mínimo 20 caracteres. Evite incluir credenciales o datos personales.</span>
+            <!-- Mensaje de error: oculto mientras no haya validación fallida,
+                 de modo que aria-describedby no lo anuncie de forma prematura. -->
+            <span id="error-system-prompt" role="alert" hidden></span>
           </p>
         </form>
       </div>
@@ -596,9 +621,12 @@
         <p>Propietario: <span data-campo="propietario"></span></p>
         <p><span data-componente="badge" data-campo="estado"></span></p>
 
-        <!-- Colapsable de skills -->
+        <!-- Colapsable de skills.
+             El nombre accesible («Ver skills de Atlas Research») contiene el
+             texto visible («Ver skills») — criterio WCAG 2.5.3. -->
         <button type="button" data-disparador="colapsable" aria-expanded="false">
-          <span>Ver skills</span>
+          <span data-texto>Ver skills</span>
+          <span class="sr-only" data-campo="skills-de"></span>
           <span aria-hidden="true">▾</span>
         </button>
         <!-- El id se genera al clonar y se enlaza con aria-controls del botón -->
