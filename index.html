@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth motion-reduce:scroll-auto">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AgentHub — Panel de administración para la orquestación y gestión de agentes de inteligencia artificial autónomos.">
+  <meta name="color-scheme" content="light dark">
   <title>AgentHub — Panel de Administración</title>
 
   <!-- Tailwind CSS vía CDN (único mecanismo de estilos permitido) -->
@@ -35,18 +36,26 @@
   <script type="module" src="js/app.js"></script>
 </head>
 
-<!-- Paleta mínima provisional: solo para poder verificar el toggle de tema.
-     El sistema de color definitivo llega en la fase de estilos. -->
-<body class="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased selection:bg-indigo-200 selection:text-indigo-950 dark:bg-slate-950 dark:text-slate-50 dark:selection:bg-indigo-800 dark:selection:text-indigo-50">
 
   <!-- ============================================================
        SKIP LINKS — atajos de salto (WCAG 2.4.1 / 2.4.11)
-       Visibles únicamente al recibir foco de teclado.
+       Ocultos visualmente, se materializan al recibir foco de teclado.
        ============================================================ -->
   <nav aria-label="Atajos de salto">
     <ul>
-      <li><a class="sr-only focus:not-sr-only" href="#contenido-principal">Saltar al contenido principal</a></li>
-      <li><a class="sr-only focus:not-sr-only" href="#navegacion-principal">Saltar a la navegación</a></li>
+      <li>
+        <a href="#contenido-principal"
+           class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-indigo-700 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:bg-indigo-400 dark:focus:text-slate-950 dark:focus:ring-indigo-800">
+          Saltar al contenido principal
+        </a>
+      </li>
+      <li>
+        <a href="#navegacion-principal"
+           class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-indigo-700 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:bg-indigo-400 dark:focus:text-slate-950 dark:focus:ring-indigo-800">
+          Saltar a la navegación
+        </a>
+      </li>
     </ul>
   </nav>
 
@@ -57,25 +66,45 @@
        ============================================================ -->
   <p id="anuncios-a11y" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
 
-  <!-- ============================================================
-       BARRA LATERAL — Navegación persistente
-       ============================================================ -->
-  <aside aria-label="Barra lateral de navegación">
+  <!-- Cortina del menú lateral en móvil -->
+  <div id="fondo-menu" hidden
+       class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-sm lg:hidden"></div>
 
-    <!-- Marca -->
-    <p id="marca-aplicacion">
-      <a href="#dashboard">
-        <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><circle cx="9" cy="14" r="1"></circle><circle cx="15" cy="14" r="1"></circle>
+  <!-- ============================================================
+       BARRA LATERAL — Navegación persistente en escritorio,
+       cajón deslizante en móvil.
+       ============================================================ -->
+  <aside id="barra-lateral" aria-label="Barra lateral de navegación"
+         class="invisible fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col gap-8 overflow-y-auto border-r border-slate-300 bg-white px-4 py-6 motion-safe:transition-transform motion-safe:duration-300 lg:visible lg:translate-x-0 dark:border-slate-700 dark:bg-slate-900">
+
+    <!-- Marca y cierre en móvil -->
+    <div class="flex items-center justify-between gap-2 px-2">
+      <p id="marca-aplicacion">
+        <a href="#dashboard"
+           class="inline-flex items-center gap-2.5 rounded-lg text-lg font-bold tracking-tight text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-700 text-white dark:bg-indigo-400 dark:text-slate-950">
+            <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><circle cx="9" cy="14" r="1"></circle><circle cx="15" cy="14" r="1"></circle>
+            </svg>
+          </span>
+          <span>AgentHub</span>
+        </a>
+      </p>
+
+      <button id="cerrar-menu" type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors lg:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
         </svg>
-        <span>AgentHub</span>
-      </a>
-    </p>
+        <span class="sr-only">Cerrar el menú de navegación</span>
+      </button>
+    </div>
 
     <nav id="navegacion-principal" aria-label="Navegación principal">
-      <ul>
+      <ul class="flex flex-col gap-1">
         <li>
-          <a href="#dashboard" data-ruta="dashboard" aria-current="page">
+          <a href="#dashboard" data-ruta="dashboard" aria-current="page"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect>
             </svg>
@@ -83,7 +112,8 @@
           </a>
         </li>
         <li>
-          <a href="#usuarios" data-ruta="usuarios">
+          <a href="#usuarios" data-ruta="usuarios"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
             </svg>
@@ -91,7 +121,8 @@
           </a>
         </li>
         <li>
-          <a href="#agentes" data-ruta="agentes">
+          <a href="#agentes" data-ruta="agentes"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M2 14h2"></path><path d="M20 14h2"></path>
             </svg>
@@ -99,7 +130,8 @@
           </a>
         </li>
         <li>
-          <a href="#skills" data-ruta="skills">
+          <a href="#skills" data-ruta="skills"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3l2.4 5.6L20 10l-4 4 1 6-5-3-5 3 1-6-4-4 5.6-1.4z"></path>
             </svg>
@@ -107,7 +139,8 @@
           </a>
         </li>
         <li>
-          <a href="#contrataciones" data-ruta="contrataciones">
+          <a href="#contrataciones" data-ruta="contrataciones"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path>
             </svg>
@@ -115,7 +148,8 @@
           </a>
         </li>
         <li>
-          <a href="#errores" data-ruta="errores">
+          <a href="#errores" data-ruta="errores"
+             class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200">
             <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>
             </svg>
@@ -124,36 +158,58 @@
         </li>
       </ul>
     </nav>
+
+    <p class="mt-auto rounded-lg bg-slate-100 px-3 py-3 text-xs leading-relaxed text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+      Entorno de demostración. Los datos mostrados son ficticios y no se
+      envían a ningún servidor.
+    </p>
   </aside>
 
   <!-- ============================================================
        CABECERA SUPERIOR
        ============================================================ -->
-  <header>
+  <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-300 bg-white px-4 py-3 lg:ml-72 lg:gap-4 lg:px-8 dark:border-slate-700 dark:bg-slate-900">
 
-    <!-- Título de página: se actualiza dinámicamente al navegar entre secciones -->
-    <h1 id="titulo-pagina">Dashboard General</h1>
+    <!-- Disparador del menú en móvil -->
+    <button id="boton-menu" type="button" aria-expanded="false" aria-controls="barra-lateral"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors lg:hidden dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+      <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>
+      </svg>
+      <span class="sr-only">Abrir el menú de navegación</span>
+    </button>
 
-    <!-- Migas de pan -->
-    <nav aria-label="Miga de pan">
-      <ol id="migas-de-pan">
-        <li><a href="#dashboard">AgentHub</a></li>
-        <li aria-current="page">Dashboard General</li>
-      </ol>
-    </nav>
+    <div class="min-w-0 flex-1">
+      <!-- Título de página: se actualiza dinámicamente al navegar -->
+      <h1 id="titulo-pagina" class="truncate text-base font-bold tracking-tight sm:text-lg">Dashboard General</h1>
+
+      <!-- Migas de pan -->
+      <nav aria-label="Miga de pan" class="mt-0.5 hidden sm:block">
+        <ol id="migas-de-pan" class="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+          <li>
+            <a href="#dashboard"
+               class="rounded font-medium underline underline-offset-2 hover:text-indigo-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:hover:text-indigo-200 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">AgentHub</a>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">Dashboard General</li>
+        </ol>
+      </nav>
+    </div>
 
     <!-- Indicador de salud de la plataforma -->
-    <p id="salud-plataforma" role="status">
-      <span aria-hidden="true">●</span>
-      <span>Estado de la plataforma: <strong>Operativa</strong></span>
+    <p id="salud-plataforma" role="status"
+       class="hidden items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-900 md:inline-flex dark:bg-emerald-950 dark:text-emerald-100">
+      <span aria-hidden="true" class="h-2 w-2 rounded-full bg-emerald-700 dark:bg-emerald-300"></span>
+      <span>Plataforma operativa</span>
     </p>
 
     <!-- Toggle de modo oscuro -->
-    <button id="toggle-tema" type="button" aria-pressed="false">
-      <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button id="toggle-tema" type="button" aria-pressed="false"
+            class="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+      <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
       </svg>
-      <span id="etiqueta-tema">Activar modo oscuro</span>
+      <span id="etiqueta-tema" class="hidden lg:inline">Activar modo oscuro</span>
     </button>
   </header>
 
@@ -161,69 +217,88 @@
        CONTENIDO PRINCIPAL — Vistas de la SPA
        Solo una <section> visible a la vez (atributo `hidden`).
        ============================================================ -->
-  <main id="contenido-principal" tabindex="-1">
+  <main id="contenido-principal" tabindex="-1"
+        class="px-4 py-6 focus:outline-none lg:ml-72 lg:px-8 lg:py-8">
 
     <!-- ────────────────────────────────────────────────────────
          5.1 DASHBOARD
          ──────────────────────────────────────────────────────── -->
-    <section id="dashboard" role="region" aria-label="Dashboard general de la plataforma" data-vista="dashboard">
+    <!-- Nota: las vistas NO usan utilidades de display (`flex`, `grid`…):
+         ganarían en especificidad al atributo `hidden` y la sección seguiría
+         visible. El espaciado se resuelve con `space-y-*`, que solo usa
+         márgenes. -->
+    <section id="dashboard" role="region" aria-label="Dashboard general de la plataforma" data-vista="dashboard"
+             class="mx-auto max-w-7xl space-y-6">
 
       <!-- Tarjetas de métricas -->
       <section aria-labelledby="titulo-metricas">
-        <h2 id="titulo-metricas">Métricas clave</h2>
+        <h2 id="titulo-metricas" class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
+          Métricas clave
+        </h2>
 
-        <ul>
+        <ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <li>
-            <section aria-labelledby="metrica-ingresos-titulo">
-              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-              </svg>
-              <h3 id="metrica-ingresos-titulo">Ingresos Totales</h3>
-              <p><strong data-metrica="ingresos">$48,250.00</strong></p>
+            <section aria-labelledby="metrica-ingresos-titulo"
+                     class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+                <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </span>
+              <h3 id="metrica-ingresos-titulo" class="text-sm font-medium text-slate-700 dark:text-slate-300">Ingresos Totales</h3>
+              <p><strong data-metrica="ingresos" class="text-3xl font-bold tracking-tight">$48,250.00</strong></p>
             </section>
           </li>
           <li>
-            <section aria-labelledby="metrica-descuentos-titulo">
-              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 5 5 19"></path><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle>
-              </svg>
-              <h3 id="metrica-descuentos-titulo">Pérdida por Descuentos</h3>
-              <p><strong data-metrica="descuentos">$3,120.00</strong></p>
+            <section aria-labelledby="metrica-descuentos-titulo"
+                     class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+                <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 5 5 19"></path><circle cx="7.5" cy="7.5" r="2.5"></circle><circle cx="16.5" cy="16.5" r="2.5"></circle>
+                </svg>
+              </span>
+              <h3 id="metrica-descuentos-titulo" class="text-sm font-medium text-slate-700 dark:text-slate-300">Pérdida por Descuentos</h3>
+              <p><strong data-metrica="descuentos" class="text-3xl font-bold tracking-tight">$3,120.00</strong></p>
             </section>
           </li>
           <li>
-            <section aria-labelledby="metrica-activos-titulo">
-              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path>
-              </svg>
-              <h3 id="metrica-activos-titulo">Agentes Activos</h3>
-              <p><strong data-metrica="activos">124</strong></p>
+            <section aria-labelledby="metrica-activos-titulo"
+                     class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-100">
+                <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M12 4v4"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path>
+                </svg>
+              </span>
+              <h3 id="metrica-activos-titulo" class="text-sm font-medium text-slate-700 dark:text-slate-300">Agentes Activos</h3>
+              <p><strong data-metrica="activos" class="text-3xl font-bold tracking-tight">124</strong></p>
             </section>
           </li>
           <li>
-            <section aria-labelledby="metrica-fallando-titulo">
-              <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
-              </svg>
-              <h3 id="metrica-fallando-titulo">Agentes Fallando</h3>
-              <p><strong data-metrica="fallando">3</strong></p>
+            <section aria-labelledby="metrica-fallando-titulo"
+                     class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100">
+                <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>
+                </svg>
+              </span>
+              <h3 id="metrica-fallando-titulo" class="text-sm font-medium text-slate-700 dark:text-slate-300">Agentes Fallando</h3>
+              <p><strong data-metrica="fallando" class="text-3xl font-bold tracking-tight">3</strong></p>
             </section>
           </li>
         </ul>
       </section>
 
-      <!-- Marcador del gráfico de actividad semanal -->
-      <section aria-labelledby="titulo-actividad">
-        <h2 id="titulo-actividad">Actividad semanal de agentes</h2>
+      <!-- Gráfico de actividad semanal -->
+      <section aria-labelledby="titulo-actividad"
+               class="rounded-xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900">
+        <h2 id="titulo-actividad" class="text-base font-semibold">Actividad semanal de agentes</h2>
+        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">Ejecuciones completadas por día durante los últimos siete días.</p>
 
-        <figure>
-          <!-- Marcador visual del gráfico: se rellenará en la fase de estilos -->
-          <div id="grafico-actividad" role="img" aria-labelledby="titulo-actividad" aria-describedby="descripcion-grafico" data-marcador="grafico"></div>
-          <figcaption id="descripcion-grafico">
-            Gráfico de barras de ejecuciones diarias durante la última semana:
-            lunes 1.240, martes 1.480, miércoles 1.310, jueves 1.620, viernes 1.755,
-            sábado 890 y domingo 640 ejecuciones. Tendencia general al alza en días laborables.
-          </figcaption>
+        <figure class="mt-6">
+          <!-- Serie única: sin leyenda; el valor de cada barra se rotula
+               directamente, por lo que no hace falta eje vertical. -->
+          <div id="grafico-actividad" role="img" aria-labelledby="titulo-actividad" aria-describedby="descripcion-grafico"></div>
+          <figcaption id="descripcion-grafico" class="sr-only"></figcaption>
         </figure>
       </section>
     </section>
@@ -231,58 +306,67 @@
     <!-- ────────────────────────────────────────────────────────
          5.2 GESTIÓN DE USUARIOS
          ──────────────────────────────────────────────────────── -->
-    <section id="usuarios" role="region" aria-label="Gestión de usuarios" data-vista="usuarios" hidden>
+    <section id="usuarios" role="region" aria-label="Gestión de usuarios" data-vista="usuarios" hidden
+             class="mx-auto max-w-7xl">
 
       <section aria-labelledby="titulo-tabla-usuarios">
-        <h2 id="titulo-tabla-usuarios">Usuarios registrados</h2>
-        <p id="ayuda-tabla-usuarios">
+        <h2 id="titulo-tabla-usuarios" class="text-base font-semibold">Usuarios registrados</h2>
+        <p id="ayuda-tabla-usuarios" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
           Utilice el menú de acciones de cada fila para consultar el registro completo o eliminar la cuenta.
         </p>
 
-        <table aria-describedby="ayuda-tabla-usuarios">
-          <caption>Listado de cuentas de cliente con su plan contratado y estado actual</caption>
-          <thead>
-            <tr>
-              <th scope="col">Nombre</th>
-              <th scope="col">Email</th>
-              <th scope="col">Plan</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-usuario) -->
-          <tbody id="tbody-usuarios"></tbody>
-        </table>
+        <div class="mt-4 rounded-xl border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <table class="w-full text-left text-sm" aria-describedby="ayuda-tabla-usuarios">
+            <caption class="sr-only">Listado de cuentas de cliente con su plan contratado y estado actual</caption>
+            <thead class="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-700 dark:border-slate-700 dark:text-slate-300">
+              <tr>
+                <th scope="col" class="px-3 py-3 sm:px-4 font-semibold">Nombre</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold md:table-cell">Email</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold sm:table-cell">Plan</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 font-semibold">Estado</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-usuario) -->
+            <tbody id="tbody-usuarios" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+          </table>
+        </div>
       </section>
     </section>
 
     <!-- ────────────────────────────────────────────────────────
          5.3 GESTIÓN DE AGENTES
          ──────────────────────────────────────────────────────── -->
-    <section id="agentes" role="region" aria-label="Gestión de agentes" data-vista="agentes" hidden>
+    <section id="agentes" role="region" aria-label="Gestión de agentes" data-vista="agentes" hidden
+             class="mx-auto max-w-7xl">
 
       <section aria-labelledby="titulo-lista-agentes">
-        <h2 id="titulo-lista-agentes">Agentes desplegados</h2>
-        <p id="ayuda-lista-agentes">
+        <h2 id="titulo-lista-agentes" class="text-base font-semibold">Agentes desplegados</h2>
+        <p id="ayuda-lista-agentes" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
           Despliegue «Ver skills» para consultar las habilidades asociadas a cada agente
           o abra el menú de acciones para configurar su system prompt.
         </p>
 
         <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-tarjeta-agente) -->
-        <ul id="lista-agentes" aria-describedby="ayuda-lista-agentes"></ul>
+        <ul id="lista-agentes" aria-describedby="ayuda-lista-agentes"
+            class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></ul>
       </section>
     </section>
 
     <!-- ────────────────────────────────────────────────────────
          5.4 SKILLS
          ──────────────────────────────────────────────────────── -->
-    <section id="skills" role="region" aria-label="Catálogo de skills" data-vista="skills" hidden>
+    <section id="skills" role="region" aria-label="Catálogo de skills" data-vista="skills" hidden
+             class="mx-auto max-w-7xl space-y-6">
 
       <!-- Panel informativo explicativo -->
-      <section aria-labelledby="titulo-info-skills">
-        <h2 id="titulo-info-skills">¿Qué es una skill en AgentHub?</h2>
-        <p>
-          Una <dfn>skill</dfn> es una capacidad modular y facturable que se acopla a un agente
+      <section aria-labelledby="titulo-info-skills"
+               class="rounded-xl border border-indigo-200 border-l-4 border-l-indigo-700 bg-indigo-50 p-5 dark:border-indigo-900 dark:border-l-indigo-400 dark:bg-indigo-950">
+        <h2 id="titulo-info-skills" class="text-base font-semibold text-indigo-900 dark:text-indigo-100">
+          ¿Qué es una skill en AgentHub?
+        </h2>
+        <p class="mt-2 max-w-3xl text-sm leading-relaxed text-indigo-900 dark:text-indigo-100">
+          Una <dfn class="font-semibold not-italic">skill</dfn> es una capacidad modular y facturable que se acopla a un agente
           para habilitar una tarea concreta —consultar una base de datos, redactar informes,
           analizar imágenes o integrarse con un servicio externo—. Cada agente puede combinar
           varias skills, y su precio se imputa de forma individual en el contrato de alquiler.
@@ -291,68 +375,74 @@
 
       <!-- Catálogo de tarjetas -->
       <section aria-labelledby="titulo-catalogo-skills">
-        <h2 id="titulo-catalogo-skills">Catálogo de skills disponibles</h2>
+        <h2 id="titulo-catalogo-skills" class="text-base font-semibold">Catálogo de skills disponibles</h2>
 
         <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-tarjeta-skill) -->
-        <ul id="catalogo-skills"></ul>
+        <ul id="catalogo-skills" class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></ul>
       </section>
     </section>
 
     <!-- ────────────────────────────────────────────────────────
          5.5 CONTRATACIONES DE AGENTES
          ──────────────────────────────────────────────────────── -->
-    <section id="contrataciones" role="region" aria-label="Contrataciones de agentes" data-vista="contrataciones" hidden>
+    <section id="contrataciones" role="region" aria-label="Contrataciones de agentes" data-vista="contrataciones" hidden
+             class="mx-auto max-w-7xl">
 
       <section aria-labelledby="titulo-tabla-contratos">
-        <h2 id="titulo-tabla-contratos">Contratos de alquiler</h2>
-        <p id="ayuda-tabla-contratos">
+        <h2 id="titulo-tabla-contratos" class="text-base font-semibold">Contratos de alquiler</h2>
+        <p id="ayuda-tabla-contratos" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
           Seleccione «Ver detalle» en el menú de acciones para consultar el desglose económico del contrato.
         </p>
 
-        <table aria-describedby="ayuda-tabla-contratos">
-          <caption>Contratos de alquiler de agentes con su periodo de vigencia e importe total</caption>
-          <thead>
-            <tr>
-              <th scope="col">Cliente</th>
-              <th scope="col">Agente alquilado</th>
-              <th scope="col">Skills contratadas</th>
-              <th scope="col">Fecha de inicio</th>
-              <th scope="col">Fecha de fin</th>
-              <th scope="col">Importe total</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-contrato) -->
-          <tbody id="tbody-contratos"></tbody>
-        </table>
+        <div class="mt-4 rounded-xl border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <table class="w-full text-left text-sm" aria-describedby="ayuda-tabla-contratos">
+            <caption class="sr-only">Contratos de alquiler de agentes con su periodo de vigencia e importe total</caption>
+            <thead class="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-700 dark:border-slate-700 dark:text-slate-300">
+              <tr>
+                <th scope="col" class="px-3 py-3 sm:px-4 font-semibold">Cliente</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold sm:table-cell">Agente alquilado</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold xl:table-cell">Skills contratadas</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold lg:table-cell">Inicio</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold lg:table-cell">Fin</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 text-right font-semibold">Importe total</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-contrato) -->
+            <tbody id="tbody-contratos" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+          </table>
+        </div>
       </section>
     </section>
 
     <!-- ────────────────────────────────────────────────────────
          5.6 LOG DE ERRORES
          ──────────────────────────────────────────────────────── -->
-    <section id="errores" role="region" aria-label="Log de errores de ejecución" data-vista="errores" hidden>
+    <section id="errores" role="region" aria-label="Log de errores de ejecución" data-vista="errores" hidden
+             class="mx-auto max-w-7xl">
 
       <section aria-labelledby="titulo-tabla-errores">
-        <h2 id="titulo-tabla-errores">Registro de errores de ejecución</h2>
-        <p id="ayuda-tabla-errores">
+        <h2 id="titulo-tabla-errores" class="text-base font-semibold">Registro de errores de ejecución</h2>
+        <p id="ayuda-tabla-errores" class="mt-1 text-sm text-slate-700 dark:text-slate-300">
           Consulte la traza completa de cada incidencia o márquela como resuelta desde el menú de acciones.
         </p>
 
-        <table aria-describedby="ayuda-tabla-errores">
-          <caption>Incidencias registradas durante la ejecución de los agentes</caption>
-          <thead>
-            <tr>
-              <th scope="col">Timestamp</th>
-              <th scope="col">Agente</th>
-              <th scope="col">Gravedad</th>
-              <th scope="col">Descripción</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-error) -->
-          <tbody id="tbody-errores"></tbody>
-        </table>
+        <div class="mt-4 rounded-xl border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <table class="w-full text-left text-sm" aria-describedby="ayuda-tabla-errores">
+            <caption class="sr-only">Incidencias registradas durante la ejecución de los agentes</caption>
+            <thead class="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-700 dark:border-slate-700 dark:text-slate-300">
+              <tr>
+                <th scope="col" class="px-3 py-3 sm:px-4 font-semibold">Timestamp</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold md:table-cell">Agente</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 font-semibold">Gravedad</th>
+                <th scope="col" class="hidden px-3 py-3 sm:px-4 font-semibold lg:table-cell">Descripción</th>
+                <th scope="col" class="px-3 py-3 sm:px-4 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <!-- Poblada desde JS con datos hardcodeados (plantilla: #tpl-fila-error) -->
+            <tbody id="tbody-errores" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+          </table>
+        </div>
       </section>
     </section>
   </main>
@@ -360,8 +450,10 @@
   <!-- ============================================================
        PIE DE PÁGINA
        ============================================================ -->
-  <footer>
-    <p>AgentHub — Panel de Administración. Prototipo académico sin backend; todos los datos son ficticios.</p>
+  <footer class="border-t border-slate-300 px-4 py-6 lg:ml-72 lg:px-8 dark:border-slate-700">
+    <p class="mx-auto max-w-7xl text-xs text-slate-700 dark:text-slate-300">
+      AgentHub — Panel de Administración. Prototipo académico sin backend; todos los datos son ficticios.
+    </p>
   </footer>
 
 
@@ -373,212 +465,228 @@
        ============================================================ -->
 
   <!-- 5.2 · Registro completo de usuario -->
-  <dialog id="modal-usuario" aria-labelledby="modal-usuario-titulo" aria-describedby="modal-usuario-cuerpo">
-    <article>
-      <header>
-        <h2 id="modal-usuario-titulo">Registro completo del usuario</h2>
+  <dialog id="modal-usuario" aria-labelledby="modal-usuario-titulo" aria-describedby="modal-usuario-cuerpo"
+          class="m-auto w-[min(38rem,92vw)] rounded-2xl border border-slate-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50">
+    <article class="flex max-h-[85vh] flex-col">
+      <header class="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 dark:border-slate-700">
+        <h2 id="modal-usuario-titulo" class="text-base font-semibold">Registro completo del usuario</h2>
         <form method="dialog">
-          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de registro de usuario">
-            <span aria-hidden="true">✕</span>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">✕</span>
+            <span class="sr-only">Cerrar diálogo de registro de usuario</span>
           </button>
         </form>
       </header>
 
-      <div id="modal-usuario-cuerpo">
-        <dl>
-          <dt>ID de usuario</dt>
-          <dd data-campo="id"></dd>
-          <dt>Nombre completo</dt>
-          <dd data-campo="nombre"></dd>
-          <dt>Email</dt>
-          <dd data-campo="email"></dd>
-          <dt>Plan contratado</dt>
-          <dd data-campo="plan"></dd>
-          <dt>Estado</dt>
-          <dd data-campo="estado"></dd>
-          <dt>Fecha de alta</dt>
-          <dd data-campo="alta"></dd>
-          <dt>Nivel de uso</dt>
-          <dd data-campo="uso"></dd>
-          <dt>Dirección de facturación</dt>
-          <dd data-campo="facturacion"></dd>
+      <div id="modal-usuario-cuerpo" class="overflow-y-auto px-5 py-4">
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">ID de usuario</dt><dd data-campo="id" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Nombre completo</dt><dd data-campo="nombre" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Email</dt><dd data-campo="email" class="mt-0.5 break-words text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Plan contratado</dt><dd data-campo="plan" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Estado</dt><dd data-campo="estado" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Fecha de alta</dt><dd data-campo="alta" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Nivel de uso</dt><dd data-campo="uso" class="mt-0.5 text-sm"></dd></div>
+          <div class="sm:col-span-2"><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Dirección de facturación</dt><dd data-campo="facturacion" class="mt-0.5 text-sm"></dd></div>
         </dl>
       </div>
 
-      <footer>
+      <footer class="flex justify-end border-t border-slate-300 px-5 py-4 dark:border-slate-700">
         <form method="dialog">
-          <button type="submit" data-cerrar-modal>Cerrar</button>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 items-center rounded-lg border border-slate-400 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            Cerrar
+          </button>
         </form>
       </footer>
     </article>
   </dialog>
 
   <!-- 5.3 · Configuración del system prompt -->
-  <dialog id="modal-prompt" aria-labelledby="modal-prompt-titulo" aria-describedby="modal-prompt-descripcion">
-    <article>
-      <header>
-        <h2 id="modal-prompt-titulo">Configurar system prompt</h2>
+  <dialog id="modal-prompt" aria-labelledby="modal-prompt-titulo" aria-describedby="modal-prompt-descripcion"
+          class="m-auto w-[min(42rem,92vw)] rounded-2xl border border-slate-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50">
+    <article class="flex max-h-[85vh] flex-col">
+      <header class="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 dark:border-slate-700">
+        <h2 id="modal-prompt-titulo" class="text-base font-semibold">Configurar system prompt</h2>
         <form method="dialog">
-          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de configuración del system prompt">
-            <span aria-hidden="true">✕</span>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">✕</span>
+            <span class="sr-only">Cerrar diálogo de configuración del system prompt</span>
           </button>
         </form>
       </header>
 
-      <div>
-        <p id="modal-prompt-descripcion">
+      <div class="overflow-y-auto px-5 py-4">
+        <p id="modal-prompt-descripcion" class="text-sm text-slate-700 dark:text-slate-300">
           Edite las instrucciones base que condicionan el comportamiento del agente
-          <strong data-campo="agente"></strong>. Los cambios se aplican en el siguiente ciclo de ejecución.
+          <strong data-campo="agente" class="font-semibold text-slate-900 dark:text-slate-50"></strong>.
+          Los cambios se aplican en el siguiente ciclo de ejecución.
         </p>
 
-        <form id="form-prompt" novalidate>
-          <p>
-            <label for="campo-system-prompt">System prompt del agente</label>
-            <textarea id="campo-system-prompt" name="systemPrompt" rows="10" required
+        <form id="form-prompt" novalidate class="mt-4">
+          <p class="flex flex-col gap-1.5">
+            <label for="campo-system-prompt" class="text-sm font-semibold">System prompt del agente</label>
+            <textarea id="campo-system-prompt" name="systemPrompt" rows="9" required
                       data-foco-inicial
-                      aria-describedby="ayuda-system-prompt error-system-prompt"></textarea>
-            <span id="ayuda-system-prompt">Mínimo 20 caracteres. Evite incluir credenciales o datos personales.</span>
+                      aria-describedby="ayuda-system-prompt error-system-prompt"
+                      class="w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white aria-[invalid=true]:border-red-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-50 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900 dark:aria-[invalid=true]:border-red-400"></textarea>
+            <span id="ayuda-system-prompt" class="text-xs text-slate-700 dark:text-slate-300">Mínimo 20 caracteres. Evite incluir credenciales o datos personales.</span>
             <!-- Mensaje de error: oculto mientras no haya validación fallida,
                  de modo que aria-describedby no lo anuncie de forma prematura. -->
-            <span id="error-system-prompt" role="alert" hidden></span>
+            <span id="error-system-prompt" role="alert" hidden class="text-xs font-semibold text-red-800 dark:text-red-300"></span>
           </p>
         </form>
       </div>
 
-      <footer>
-        <button type="submit" form="form-prompt">Guardar cambios</button>
+      <footer class="flex flex-wrap justify-end gap-3 border-t border-slate-300 px-5 py-4 dark:border-slate-700">
         <form method="dialog">
-          <button type="submit" data-cerrar-modal>Cancelar</button>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 items-center rounded-lg border border-slate-400 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            Cancelar
+          </button>
         </form>
+        <button type="submit" form="form-prompt"
+                class="inline-flex h-10 items-center rounded-lg bg-indigo-700 px-4 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:bg-indigo-400 dark:text-slate-950 dark:hover:bg-indigo-300 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+          Guardar cambios
+        </button>
       </footer>
     </article>
   </dialog>
 
   <!-- 5.4 · Detalle de skill -->
-  <dialog id="modal-skill" aria-labelledby="modal-skill-titulo" aria-describedby="modal-skill-cuerpo">
-    <article>
-      <header>
-        <h2 id="modal-skill-titulo">Detalle de la skill</h2>
+  <dialog id="modal-skill" aria-labelledby="modal-skill-titulo" aria-describedby="modal-skill-cuerpo"
+          class="m-auto w-[min(34rem,92vw)] rounded-2xl border border-slate-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50">
+    <article class="flex max-h-[85vh] flex-col">
+      <header class="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 dark:border-slate-700">
+        <h2 id="modal-skill-titulo" class="text-base font-semibold">Detalle de la skill</h2>
         <form method="dialog">
-          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de detalle de skill">
-            <span aria-hidden="true">✕</span>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">✕</span>
+            <span class="sr-only">Cerrar diálogo de detalle de skill</span>
           </button>
         </form>
       </header>
 
-      <div id="modal-skill-cuerpo">
-        <dl>
-          <dt>Nombre</dt>
-          <dd data-campo="nombre"></dd>
-          <dt>Descripción</dt>
-          <dd data-campo="descripcion"></dd>
-          <dt>Agentes activos que la utilizan</dt>
-          <dd data-campo="agentes"></dd>
-          <dt>Precio mensual por agente</dt>
-          <dd data-campo="precio"></dd>
+      <div id="modal-skill-cuerpo" class="overflow-y-auto px-5 py-4">
+        <dl class="flex flex-col gap-3">
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Nombre</dt><dd data-campo="nombre" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Descripción</dt><dd data-campo="descripcion" class="mt-0.5 text-sm leading-relaxed"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Agentes activos que la utilizan</dt><dd data-campo="agentes" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Precio mensual por agente</dt><dd data-campo="precio" class="mt-0.5 text-sm"></dd></div>
         </dl>
       </div>
 
-      <footer>
+      <footer class="flex justify-end border-t border-slate-300 px-5 py-4 dark:border-slate-700">
         <form method="dialog">
-          <button type="submit" data-cerrar-modal>Cerrar</button>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 items-center rounded-lg border border-slate-400 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            Cerrar
+          </button>
         </form>
       </footer>
     </article>
   </dialog>
 
   <!-- 5.5 · Desglose del contrato -->
-  <dialog id="modal-contrato" aria-labelledby="modal-contrato-titulo" aria-describedby="modal-contrato-cuerpo">
-    <article>
-      <header>
-        <h2 id="modal-contrato-titulo">Desglose del contrato</h2>
+  <dialog id="modal-contrato" aria-labelledby="modal-contrato-titulo" aria-describedby="modal-contrato-cuerpo"
+          class="m-auto w-[min(42rem,92vw)] rounded-2xl border border-slate-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50">
+    <article class="flex max-h-[85vh] flex-col">
+      <header class="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 dark:border-slate-700">
+        <h2 id="modal-contrato-titulo" class="text-base font-semibold">Desglose del contrato</h2>
         <form method="dialog">
-          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de desglose del contrato">
-            <span aria-hidden="true">✕</span>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">✕</span>
+            <span class="sr-only">Cerrar diálogo de desglose del contrato</span>
           </button>
         </form>
       </header>
 
-      <div id="modal-contrato-cuerpo">
-        <dl>
-          <dt>Cliente</dt>
-          <dd data-campo="cliente"></dd>
-          <dt>Agente alquilado</dt>
-          <dd data-campo="agente"></dd>
-          <dt>Periodo de vigencia</dt>
-          <dd data-campo="periodo"></dd>
-          <dt>Método de pago</dt>
-          <dd data-campo="pago"></dd>
+      <div id="modal-contrato-cuerpo" class="overflow-y-auto px-5 py-4">
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Cliente</dt><dd data-campo="cliente" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Agente alquilado</dt><dd data-campo="agente" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Periodo de vigencia</dt><dd data-campo="periodo" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Método de pago</dt><dd data-campo="pago" class="mt-0.5 text-sm"></dd></div>
         </dl>
 
-        <table>
-          <caption>Skills contratadas y su precio individual</caption>
-          <thead>
+        <table class="mt-5 w-full text-left text-sm">
+          <caption class="sr-only">Skills contratadas y su precio individual</caption>
+          <thead class="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-700 dark:border-slate-700 dark:text-slate-300">
             <tr>
-              <th scope="col">Skill</th>
-              <th scope="col">Precio unitario</th>
+              <th scope="col" class="py-2 pr-4 font-semibold">Skill</th>
+              <th scope="col" class="py-2 text-right font-semibold">Precio unitario</th>
             </tr>
           </thead>
-          <tbody data-campo="lineas"></tbody>
-          <tfoot>
+          <tbody data-campo="lineas" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+          <tfoot class="border-t-2 border-slate-300 dark:border-slate-700">
             <tr>
-              <th scope="row">Subtotal</th>
-              <td data-campo="subtotal"></td>
+              <th scope="row" class="py-2 pr-4 text-left font-medium text-slate-700 dark:text-slate-300">Subtotal</th>
+              <td data-campo="subtotal" class="py-2 text-right tabular-nums"></td>
             </tr>
             <tr>
-              <th scope="row">Impuestos (21% IVA)</th>
-              <td data-campo="impuestos"></td>
+              <th scope="row" class="py-2 pr-4 text-left font-medium text-slate-700 dark:text-slate-300">Impuestos (21% IVA)</th>
+              <td data-campo="impuestos" class="py-2 text-right tabular-nums"></td>
             </tr>
             <tr>
-              <th scope="row">Total pagado</th>
-              <td data-campo="total"></td>
+              <th scope="row" class="py-2 pr-4 text-left font-bold">Total pagado</th>
+              <td data-campo="total" class="py-2 text-right font-bold tabular-nums"></td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <footer>
+      <footer class="flex justify-end border-t border-slate-300 px-5 py-4 dark:border-slate-700">
         <form method="dialog">
-          <button type="submit" data-cerrar-modal>Cerrar</button>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 items-center rounded-lg border border-slate-400 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            Cerrar
+          </button>
         </form>
       </footer>
     </article>
   </dialog>
 
   <!-- 5.6 · Traza completa del error -->
-  <dialog id="modal-error" aria-labelledby="modal-error-titulo" aria-describedby="modal-error-cuerpo">
-    <article>
-      <header>
-        <h2 id="modal-error-titulo">Traza completa del error</h2>
+  <dialog id="modal-error" aria-labelledby="modal-error-titulo" aria-describedby="modal-error-cuerpo"
+          class="m-auto w-[min(46rem,92vw)] rounded-2xl border border-slate-300 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50">
+    <article class="flex max-h-[85vh] flex-col">
+      <header class="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 dark:border-slate-700">
+        <h2 id="modal-error-titulo" class="text-base font-semibold">Traza completa del error</h2>
         <form method="dialog">
-          <button type="submit" data-cerrar-modal aria-label="Cerrar diálogo de traza del error">
-            <span aria-hidden="true">✕</span>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-800 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">✕</span>
+            <span class="sr-only">Cerrar diálogo de traza del error</span>
           </button>
         </form>
       </header>
 
-      <div id="modal-error-cuerpo">
-        <dl>
-          <dt>Timestamp</dt>
-          <dd data-campo="timestamp"></dd>
-          <dt>Agente</dt>
-          <dd data-campo="agente"></dd>
-          <dt>Gravedad</dt>
-          <dd data-campo="gravedad"></dd>
-          <dt>Contexto de ejecución</dt>
-          <dd data-campo="contexto"></dd>
+      <div id="modal-error-cuerpo" class="overflow-y-auto px-5 py-4">
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Timestamp</dt><dd data-campo="timestamp" class="mt-0.5 text-sm tabular-nums"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Agente</dt><dd data-campo="agente" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Gravedad</dt><dd data-campo="gravedad" class="mt-0.5 text-sm"></dd></div>
+          <div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Contexto de ejecución</dt><dd data-campo="contexto" class="mt-0.5 text-sm"></dd></div>
         </dl>
 
         <!-- Región desplazable: debe ser alcanzable por teclado (WCAG 2.1.1) -->
-        <div role="region" aria-labelledby="titulo-stack-trace" tabindex="0">
-          <h3 id="titulo-stack-trace">Stack trace</h3>
-          <pre><code data-campo="stack"></code></pre>
+        <div role="region" aria-labelledby="titulo-stack-trace" tabindex="0"
+             class="mt-5 rounded-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+          <h3 id="titulo-stack-trace" class="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Stack trace</h3>
+          <pre class="mt-2 max-h-56 overflow-auto rounded-lg bg-slate-900 p-4 text-xs leading-relaxed text-slate-100 dark:bg-slate-950"><code data-campo="stack"></code></pre>
         </div>
       </div>
 
-      <footer>
+      <footer class="flex justify-end border-t border-slate-300 px-5 py-4 dark:border-slate-700">
         <form method="dialog">
-          <button type="submit" data-cerrar-modal>Cerrar</button>
+          <button type="submit" data-cerrar-modal
+                  class="inline-flex h-10 items-center rounded-lg border border-slate-400 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            Cerrar
+          </button>
         </form>
       </footer>
     </article>
@@ -593,20 +701,22 @@
 
   <!-- Fila de la tabla de usuarios -->
   <template id="tpl-fila-usuario">
-    <tr>
-      <th scope="row" data-campo="nombre"></th>
-      <td data-campo="email"></td>
-      <td data-campo="plan"></td>
-      <td><span data-componente="badge" data-campo="estado"></span></td>
-      <td>
-        <div data-componente="dropdown">
-          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">⋮</span>
+    <tr class="hover:bg-slate-50 motion-safe:transition-colors dark:hover:bg-slate-800">
+      <th scope="row" data-campo="nombre" class="px-3 py-3 text-left font-semibold sm:px-4 lg:whitespace-nowrap"></th>
+      <td data-campo="email" class="hidden px-3 py-3 sm:px-4 text-slate-700 md:table-cell dark:text-slate-300"></td>
+      <td data-campo="plan" class="hidden px-3 py-3 sm:px-4 text-slate-700 sm:table-cell dark:text-slate-300"></td>
+      <td class="px-3 py-3 sm:px-4"><span data-componente="badge" data-campo="estado"></span></td>
+      <td class="px-3 py-3 sm:px-4 text-right">
+        <div data-componente="dropdown" class="relative inline-block text-left">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">⋮</span>
             <span class="sr-only" data-campo="etiqueta-acciones">Acciones del usuario</span>
           </button>
-          <ul role="menu" data-menu hidden>
-            <li role="none"><button type="button" role="menuitem" data-accion="ver-usuario">Ver detalle</button></li>
-            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-usuario">Eliminar</button></li>
+          <ul role="menu" data-menu hidden
+              class="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-slate-300 bg-white py-1 shadow-xl dark:border-slate-600 dark:bg-slate-800">
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-usuario" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors aria-[disabled=true]:cursor-not-allowed aria-[disabled=true]:italic dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Ver detalle</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-usuario" class="block w-full px-4 py-2.5 text-left text-sm text-red-800 hover:bg-red-50 focus:bg-red-50 focus:outline-none motion-safe:transition-colors dark:text-red-300 dark:hover:bg-red-950 dark:focus:bg-red-950">Eliminar</button></li>
           </ul>
         </div>
       </td>
@@ -616,32 +726,47 @@
   <!-- Tarjeta de agente con lista de skills colapsable -->
   <template id="tpl-tarjeta-agente">
     <li>
-      <section data-componente="tarjeta-agente">
-        <h3 data-campo="nombre"></h3>
-        <p>Propietario: <span data-campo="propietario"></span></p>
+      <section data-componente="tarjeta-agente"
+               class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <h3 data-campo="nombre" class="truncate text-base font-semibold"></h3>
+            <p class="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
+              Propietario: <span data-campo="propietario"></span>
+            </p>
+          </div>
+
+          <!-- Menú de acciones -->
+          <div data-componente="dropdown" class="relative shrink-0 text-left">
+            <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+              <span aria-hidden="true" class="text-lg leading-none">⋮</span>
+              <span class="sr-only" data-campo="etiqueta-acciones">Acciones del agente</span>
+            </button>
+            <ul role="menu" data-menu hidden
+                class="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-slate-300 bg-white py-1 shadow-xl dark:border-slate-600 dark:bg-slate-800">
+              <li role="none"><button type="button" role="menuitem" data-accion="configurar-agente" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Configurar</button></li>
+              <li role="none"><button type="button" role="menuitem" data-accion="eliminar-agente" class="block w-full px-4 py-2.5 text-left text-sm text-red-800 hover:bg-red-50 focus:bg-red-50 focus:outline-none motion-safe:transition-colors dark:text-red-300 dark:hover:bg-red-950 dark:focus:bg-red-950">Eliminar</button></li>
+            </ul>
+          </div>
+        </div>
+
         <p><span data-componente="badge" data-campo="estado"></span></p>
 
         <!-- Colapsable de skills.
              El nombre accesible («Ver skills de Atlas Research») contiene el
              texto visible («Ver skills») — criterio WCAG 2.5.3. -->
-        <button type="button" data-disparador="colapsable" aria-expanded="false">
-          <span data-texto>Ver skills</span>
-          <span class="sr-only" data-campo="skills-de"></span>
-          <span aria-hidden="true">▾</span>
-        </button>
-        <!-- El id se genera al clonar y se enlaza con aria-controls del botón -->
-        <ul data-panel="skills" hidden></ul>
-
-        <!-- Menú de acciones -->
-        <div data-componente="dropdown">
-          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">⋮</span>
-            <span class="sr-only" data-campo="etiqueta-acciones">Acciones del agente</span>
+        <div class="mt-auto border-t border-slate-200 pt-3 dark:border-slate-800">
+          <button type="button" data-disparador="colapsable" aria-expanded="false"
+                  class="inline-flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm font-semibold text-indigo-800 hover:bg-indigo-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-indigo-200 dark:hover:bg-indigo-950 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span>
+              <span data-texto>Ver skills</span>
+              <span class="sr-only" data-campo="skills-de"></span>
+            </span>
+            <span aria-hidden="true" data-flecha class="text-xs motion-safe:transition-transform">▾</span>
           </button>
-          <ul role="menu" data-menu hidden>
-            <li role="none"><button type="button" role="menuitem" data-accion="configurar-agente">Configurar</button></li>
-            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-agente">Eliminar</button></li>
-          </ul>
+          <!-- Sin utilidades de display: anularían el atributo `hidden`. -->
+          <ul data-panel="skills" hidden class="mt-2 space-y-1.5 px-2 pb-1"></ul>
         </div>
       </section>
     </li>
@@ -650,42 +775,56 @@
   <!-- Tarjeta del catálogo de skills -->
   <template id="tpl-tarjeta-skill">
     <li>
-      <article data-componente="tarjeta-skill">
-        <h3 data-campo="nombre"></h3>
-        <p data-campo="descripcion"></p>
-        <p><strong data-campo="agentes"></strong> agentes activos</p>
+      <article data-componente="tarjeta-skill"
+               class="flex h-full flex-col gap-3 rounded-xl border border-slate-300 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-2">
+          <h3 data-campo="nombre" class="text-base font-semibold"></h3>
 
-        <div data-componente="dropdown">
-          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">⋮</span>
-            <span class="sr-only" data-campo="etiqueta-acciones">Acciones de la skill</span>
-          </button>
-          <ul role="menu" data-menu hidden>
-            <li role="none"><button type="button" role="menuitem" data-accion="ver-skill">Ver detalle</button></li>
-            <li role="none"><button type="button" role="menuitem" data-accion="eliminar-skill">Eliminar</button></li>
-          </ul>
+          <div data-componente="dropdown" class="relative shrink-0 text-left">
+            <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+              <span aria-hidden="true" class="text-lg leading-none">⋮</span>
+              <span class="sr-only" data-campo="etiqueta-acciones">Acciones de la skill</span>
+            </button>
+            <ul role="menu" data-menu hidden
+                class="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-slate-300 bg-white py-1 shadow-xl dark:border-slate-600 dark:bg-slate-800">
+              <li role="none"><button type="button" role="menuitem" data-accion="ver-skill" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Ver detalle</button></li>
+              <li role="none"><button type="button" role="menuitem" data-accion="eliminar-skill" class="block w-full px-4 py-2.5 text-left text-sm text-red-800 hover:bg-red-50 focus:bg-red-50 focus:outline-none motion-safe:transition-colors dark:text-red-300 dark:hover:bg-red-950 dark:focus:bg-red-950">Eliminar</button></li>
+            </ul>
+          </div>
         </div>
+
+        <p data-campo="descripcion" class="text-sm leading-relaxed text-slate-700 dark:text-slate-300"></p>
+
+        <p class="mt-auto inline-flex items-center gap-2 pt-1 text-sm text-slate-700 dark:text-slate-300">
+          <span class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-bold text-indigo-900 tabular-nums dark:bg-indigo-950 dark:text-indigo-100">
+            <strong data-campo="agentes"></strong>
+          </span>
+          agentes activos
+        </p>
       </article>
     </li>
   </template>
 
   <!-- Fila de la tabla de contratos -->
   <template id="tpl-fila-contrato">
-    <tr>
-      <th scope="row" data-campo="cliente"></th>
-      <td data-campo="agente"></td>
-      <td data-campo="skills"></td>
-      <td><time data-campo="inicio"></time></td>
-      <td><time data-campo="fin"></time></td>
-      <td data-campo="importe"></td>
-      <td>
-        <div data-componente="dropdown">
-          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">⋮</span>
+    <tr class="hover:bg-slate-50 motion-safe:transition-colors dark:hover:bg-slate-800">
+      <th scope="row" data-campo="cliente" class="px-3 py-3 text-left font-semibold sm:px-4 lg:whitespace-nowrap"></th>
+      <td data-campo="agente" class="hidden px-3 py-3 text-slate-700 sm:table-cell sm:px-4 lg:whitespace-nowrap dark:text-slate-300"></td>
+      <td data-campo="skills" class="hidden px-3 py-3 sm:px-4 text-slate-700 xl:table-cell dark:text-slate-300"></td>
+      <td class="hidden px-3 py-3 sm:px-4 text-slate-700 lg:table-cell dark:text-slate-300"><time data-campo="inicio"></time></td>
+      <td class="hidden px-3 py-3 sm:px-4 text-slate-700 lg:table-cell dark:text-slate-300"><time data-campo="fin"></time></td>
+      <td data-campo="importe" class="px-3 py-3 sm:px-4 text-right font-semibold tabular-nums"></td>
+      <td class="px-3 py-3 sm:px-4 text-right">
+        <div data-componente="dropdown" class="relative inline-block text-left">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">⋮</span>
             <span class="sr-only" data-campo="etiqueta-acciones">Acciones del contrato</span>
           </button>
-          <ul role="menu" data-menu hidden>
-            <li role="none"><button type="button" role="menuitem" data-accion="ver-contrato">Ver detalle</button></li>
+          <ul role="menu" data-menu hidden
+              class="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-slate-300 bg-white py-1 shadow-xl dark:border-slate-600 dark:bg-slate-800">
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-contrato" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Ver detalle</button></li>
           </ul>
         </div>
       </td>
@@ -694,24 +833,34 @@
 
   <!-- Fila de la tabla del log de errores -->
   <template id="tpl-fila-error">
-    <tr>
-      <th scope="row"><time data-campo="timestamp"></time></th>
-      <td data-campo="agente"></td>
-      <td><span data-componente="badge" data-campo="gravedad"></span></td>
-      <td data-campo="descripcion"></td>
-      <td>
-        <div data-componente="dropdown">
-          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">⋮</span>
+    <tr class="hover:bg-slate-50 motion-safe:transition-colors dark:hover:bg-slate-800">
+      <th scope="row" class="px-3 py-3 text-left font-medium tabular-nums sm:px-4 lg:whitespace-nowrap"><time data-campo="timestamp"></time></th>
+      <td data-campo="agente" class="hidden px-3 py-3 sm:px-4 text-slate-700 md:table-cell dark:text-slate-300"></td>
+      <td class="px-3 py-3 sm:px-4"><span data-componente="badge" data-campo="gravedad"></span></td>
+      <td data-campo="descripcion" class="hidden px-3 py-3 sm:px-4 text-slate-700 lg:table-cell dark:text-slate-300"></td>
+      <td class="px-3 py-3 sm:px-4 text-right">
+        <div data-componente="dropdown" class="relative inline-block text-left">
+          <button type="button" data-disparador="dropdown" aria-haspopup="true" aria-expanded="false"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:transition-colors dark:text-slate-300 dark:hover:bg-slate-700 dark:focus-visible:ring-indigo-300 dark:focus-visible:ring-offset-slate-900">
+            <span aria-hidden="true" class="text-lg leading-none">⋮</span>
             <span class="sr-only" data-campo="etiqueta-acciones">Acciones del error</span>
           </button>
-          <ul role="menu" data-menu hidden>
-            <li role="none"><button type="button" role="menuitem" data-accion="ver-error">Ver traza completa</button></li>
-            <li role="none"><button type="button" role="menuitem" data-accion="resolver-error">Marcar como resuelto</button></li>
+          <ul role="menu" data-menu hidden
+              class="absolute right-0 z-30 mt-1 w-56 overflow-hidden rounded-lg border border-slate-300 bg-white py-1 shadow-xl dark:border-slate-600 dark:bg-slate-800">
+            <li role="none"><button type="button" role="menuitem" data-accion="ver-error" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Ver traza completa</button></li>
+            <li role="none"><button type="button" role="menuitem" data-accion="resolver-error" class="block w-full px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none motion-safe:transition-colors aria-[disabled=true]:cursor-not-allowed aria-[disabled=true]:italic dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700">Marcar como resuelto</button></li>
           </ul>
         </div>
       </td>
     </tr>
+  </template>
+
+  <!-- Columna del gráfico de actividad semanal (serie única) -->
+  <template id="tpl-barra-actividad">
+    <div class="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+      <span data-campo="valor" class="text-[11px] font-semibold tabular-nums text-slate-700 dark:text-slate-300"></span>
+      <span data-campo="barra" class="w-full rounded-t-md bg-indigo-600 dark:bg-indigo-400"></span>
+    </div>
   </template>
 
 </body>

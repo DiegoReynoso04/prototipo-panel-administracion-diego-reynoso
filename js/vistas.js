@@ -36,11 +36,57 @@ import { abrirModal, cerrarModal } from './modales.js';
 
 const textoEstado = (clave) => ESTADOS[clave] ?? clave;
 
-/** Escribe el texto y el estado semántico de un badge. */
+/* ── Badges de estado ────────────────────────────────────────────
+   El color refuerza la gravedad, pero nunca la comunica en solitario:
+   cada badge lleva su etiqueta textual (WCAG 1.4.1). Todos los pares
+   fondo/texto superan 7:1 en modo claro y oscuro.                    */
+
+const BADGE_BASE =
+  'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset';
+
+const TONO_POR_ESTADO = {
+  activo: 'verde',
+  resuelto: 'verde',
+  fallando: 'rojo',
+  critico: 'rojo',
+  suspendido: 'rojo',
+  error: 'naranja',
+  advertencia: 'ambar',
+  moroso: 'ambar',
+  prueba: 'azul',
+  inactivo: 'gris',
+};
+
+const CLASES_TONO = {
+  verde: 'bg-emerald-100 text-emerald-900 ring-emerald-700/40 dark:bg-emerald-950 dark:text-emerald-100 dark:ring-emerald-300/40',
+  rojo: 'bg-red-100 text-red-900 ring-red-700/40 dark:bg-red-950 dark:text-red-100 dark:ring-red-300/40',
+  naranja: 'bg-orange-100 text-orange-900 ring-orange-700/40 dark:bg-orange-950 dark:text-orange-100 dark:ring-orange-300/40',
+  ambar: 'bg-amber-100 text-amber-900 ring-amber-700/40 dark:bg-amber-950 dark:text-amber-100 dark:ring-amber-300/40',
+  azul: 'bg-sky-100 text-sky-900 ring-sky-700/40 dark:bg-sky-950 dark:text-sky-100 dark:ring-sky-300/40',
+  gris: 'bg-slate-200 text-slate-900 ring-slate-600/40 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-300/40',
+};
+
+const CLASES_PUNTO = {
+  verde: 'bg-emerald-700 dark:bg-emerald-300',
+  rojo: 'bg-red-700 dark:bg-red-300',
+  naranja: 'bg-orange-700 dark:bg-orange-300',
+  ambar: 'bg-amber-700 dark:bg-amber-300',
+  azul: 'bg-sky-700 dark:bg-sky-300',
+  gris: 'bg-slate-600 dark:bg-slate-300',
+};
+
+/** Escribe el texto, el color y el estado semántico de un badge. */
 function pintarBadge(badge, clave) {
   if (!badge) return;
-  badge.textContent = textoEstado(clave);
+  const tono = TONO_POR_ESTADO[clave] ?? 'gris';
+  badge.className = `${BADGE_BASE} ${CLASES_TONO[tono]}`;
   badge.dataset.estado = clave;
+
+  const punto = document.createElement('span');
+  punto.setAttribute('aria-hidden', 'true');
+  punto.className = `h-1.5 w-1.5 shrink-0 rounded-full ${CLASES_PUNTO[tono]}`;
+
+  badge.replaceChildren(punto, document.createTextNode(textoEstado(clave)));
 }
 
 /** Rellena un hueco `data-campo` de un nodo clonado. */
@@ -93,13 +139,66 @@ function reubicarFoco(contenedor, indice) {
 
 /* ── 5.1 · Dashboard ─────────────────────────────────────────────── */
 
-export function renderDashboard() {
-  qs('[data-metrica="ingresos"]').textContent = formatearMoneda(metricas.ingresos);
-  qs('[data-metrica="descuentos"]').textContent = formatearMoneda(metricas.descuentos);
-  qs('[data-metrica="activos"]').textContent = formatearNumero(metricas.agentesActivos);
-  qs('[data-metrica="fallando"]').textContent = formatearNumero(metricas.agentesFallando);
+/**
+ * Alturas disponibles para las barras, con su valor en píxeles.
+ * Son literales para que el escáner de Tailwind (y el observador del CDN)
+ * genere las clases: una altura calculada en línea exigiría un atributo
+ * `style`, que está prohibido.
+ *
+ * Se elige el escalón más próximo a la altura proporcional exacta, de modo
+ * que las barras arrancan en cero y su longitud sí representa el valor
+ * (error máximo de 8 px sobre 192).
+ */
+const ALTO_MAXIMO_BARRA = 192;
 
-  // Alternativa textual del gráfico, derivada de los propios datos.
+const ALTURAS_BARRA = [
+  ['h-0', 0], ['h-1', 4], ['h-2', 8], ['h-3', 12], ['h-4', 16], ['h-5', 20],
+  ['h-6', 24], ['h-7', 28], ['h-8', 32], ['h-9', 36], ['h-10', 40], ['h-11', 44],
+  ['h-12', 48], ['h-14', 56], ['h-16', 64], ['h-20', 80], ['h-24', 96],
+  ['h-28', 112], ['h-32', 128], ['h-36', 144], ['h-40', 160], ['h-44', 176],
+  ['h-48', 192],
+];
+
+/** Clase de altura más próxima a la proporción indicada (0–1). */
+const claseAltura = (proporcion) => {
+  const exacta = proporcion * ALTO_MAXIMO_BARRA;
+  return ALTURAS_BARRA.reduce((mejor, actual) =>
+    Math.abs(actual[1] - exacta) < Math.abs(mejor[1] - exacta) ? actual : mejor
+  )[0];
+};
+
+/**
+ * Gráfico de actividad semanal: una sola serie, por lo que no lleva leyenda
+ * ni eje vertical — el valor se rotula directamente sobre cada barra. El
+ * contenedor es `role="img"` y su alternativa textual es el `<figcaption>`.
+ */
+function renderGraficoActividad() {
+  const maximo = Math.max(...actividadSemanal.map((dia) => dia.ejecuciones));
+
+  const barras = document.createElement('div');
+  barras.className =
+    'flex items-end gap-2 border-b-2 border-slate-300 sm:gap-3 dark:border-slate-600';
+
+  const dias = document.createElement('div');
+  dias.className = 'mt-2 flex gap-2 sm:gap-3';
+
+  actividadSemanal.forEach((dia) => {
+    const columna = clonar('#tpl-barra-actividad');
+    campo(columna, 'valor', formatearNumero(dia.ejecuciones));
+
+    qs('[data-campo="barra"]', columna).classList.add(claseAltura(dia.ejecuciones / maximo));
+    barras.append(columna);
+
+    const etiqueta = document.createElement('span');
+    etiqueta.className =
+      'min-w-0 flex-1 text-center text-xs font-medium text-slate-700 dark:text-slate-300';
+    etiqueta.textContent = dia.dia.slice(0, 3);
+    dias.append(etiqueta);
+  });
+
+  qs('#grafico-actividad').replaceChildren(barras, dias);
+
+  // Alternativa textual, derivada de los propios datos.
   const total = actividadSemanal.reduce((suma, dia) => suma + dia.ejecuciones, 0);
   const ordenados = [...actividadSemanal].sort((a, b) => b.ejecuciones - a.ejecuciones);
   const detalle = actividadSemanal
@@ -111,6 +210,15 @@ export function renderDashboard() {
     `Total acumulado: ${formatearNumero(total)} ejecuciones. ` +
     `Máximo el ${ordenados[0].dia.toLowerCase()} y mínimo el ` +
     `${ordenados[ordenados.length - 1].dia.toLowerCase()}.`;
+}
+
+export function renderDashboard() {
+  qs('[data-metrica="ingresos"]').textContent = formatearMoneda(metricas.ingresos);
+  qs('[data-metrica="descuentos"]').textContent = formatearMoneda(metricas.descuentos);
+  qs('[data-metrica="activos"]').textContent = formatearNumero(metricas.agentesActivos);
+  qs('[data-metrica="fallando"]').textContent = formatearNumero(metricas.agentesFallando);
+
+  renderGraficoActividad();
 }
 
 /* ── 5.2 · Usuarios ──────────────────────────────────────────────── */
@@ -152,6 +260,8 @@ function crearTarjetaAgente(agente) {
   panel.replaceChildren(
     ...agente.skills.map((nombre) => {
       const li = document.createElement('li');
+      li.className =
+        'rounded-md bg-slate-100 px-2.5 py-1.5 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-100';
       li.textContent = nombre;
       return li;
     })
@@ -344,8 +454,10 @@ const ACCIONES = {
         const fila = document.createElement('tr');
         const nombre = document.createElement('th');
         nombre.scope = 'row';
+        nombre.className = 'py-2 pr-4 text-left font-normal';
         nombre.textContent = linea.skill;
         const precio = document.createElement('td');
+        precio.className = 'py-2 text-right tabular-nums';
         precio.textContent = formatearMoneda(linea.precio);
         fila.append(nombre, precio);
         return fila;

@@ -85,6 +85,10 @@ function alternarColapsable(boton) {
   panel.hidden = expandido;
   const texto = qs('[data-texto]', boton);
   if (texto) texto.textContent = expandido ? 'Ver skills' : 'Ocultar skills';
+
+  // La flecha gira solo si el usuario no ha pedido reducir el movimiento;
+  // `motion-safe:transition-transform` en el marcado se encarga de ello.
+  qs('[data-flecha]', boton)?.classList.toggle('rotate-180', !expandido);
 }
 
 /* ── Delegación de eventos ───────────────────────────────────────── */

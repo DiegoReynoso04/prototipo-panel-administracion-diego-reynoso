@@ -32,7 +32,7 @@ export const ESTADOS = {
   inactivo: 'Inactivo',
   fallando: 'Fallando',
   suspendido: 'Suspendido',
-  prueba: 'Periodo de prueba',
+  prueba: 'En prueba',
   moroso: 'Pago pendiente',
   critico: 'Crítico',
   error: 'Error',
